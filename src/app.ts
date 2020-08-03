@@ -8,7 +8,7 @@ function add(
 	const result = `Result is ${+num1 + +num2}`;
 
 	if (returnValue) return result;
-	console.log(result);
+	return console.log(result);
 }
 
 // console.log(add('24', '4', true));
