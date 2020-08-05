@@ -1,214 +1,170 @@
-// console.log('Bois');
-
-class Department {
-	// private name: string;
-	// private employees: string[];
-
-	// constructor(n: string) {
-	// 	this.name = n;
-	// 	this.employees = [];
-	// }
-
-	// private employees: string[] = [];
-	protected employees: string[] = [];
-
-	// constructor(private readonly id: string, private name: string) {} // shorthand
-	constructor(protected readonly id: string, protected name: string) {} // so that these can be accessible to child classes
-
-	describe() {
-		console.log(`Department (${this.id}): ${this.name}`);
-	}
-	addEmployee(employee: string) {
-		this.employees.push(employee);
-		// this.id = 'd2'; //readonly
-	}
-
-	getEmployees() {
-		console.log(this.employees);
-	}
-}
-
-// const it = new Department('d1', 'IT');
-// console.log(it);
-// it.describe();
-// console.log(it.name); //won't work as it is private
-// it.addEmployee('Max');
-// console.log(it);
-
-class AccountsDepartment extends Department {
-	constructor(id: string, private reports: string[]) {
-		super(id, 'Accounts');
-	}
-
-	addReport(report: string) {
-		this.reports.push(report);
-	}
-	getReports() {
-		console.log(this.reports);
-	}
-}
-
-// const account = new AccountsDepartment('a1', ['r1', 'r2']);
-
-// account.addEmployee('MARY');
-// account.getEmployees();
-
-// account.describe();
-
-// account.addReport('r3');
-// account.getReports();
-
-// console.log(account);
-
-class ItDepartment extends Department {
-	private lastReport: string;
-
-	constructor(id: string, private reports: string[]) {
-		super(id, 'IT');
-		this.lastReport = reports[reports.length - 1];
-	}
-
-	getReports() {
-		console.log(this.reports);
-	}
-
-	addReport(report: string) {
-		this.reports.push(report);
-		this.lastReport = report;
-	}
-
-	get getLastReport() {
-		return this.lastReport;
-	}
-
-	describe() {
-		console.log(`Overridden: ${this.name}`);
-		console.log(`Employees under IT are: ${this.employees}`);
-	}
-}
-
-// const it = new ItDepartment('i1', ['r1', 'r2']);
-
-// it.addEmployee('Max');
-// it.addEmployee('Mary');
-
-// it.describe();
-
-// console.log(it.getLastReport);
-// it.addReport('r3');
-// console.log(it.getLastReport);
-
-abstract class Department2 {
-	constructor(protected readonly id: string, protected name: string) {} // so that these can be accessible to child classes
-
-	abstract describe(): void; //abstract definition for child classes
-}
-
-// const dep = new Department2() // abstract class can't be used to create an instance
-
-class ItDepartment2 extends Department2 {
-	constructor(id: string) {
-		super(id, 'IT');
-	}
-
-	describe() {
-		console.log('abstract implementation');
-	}
-}
-
-// const it = new ItDepartment2('i2');
-
-// console.log(it);
-// it.describe();
-
-interface Greet {
-	readonly name: string;
-	greet(phrase: string): void;
-}
-
-// const person2: Greet = {
-// 	name: 'kartik',
-// 	greet(phrase) {
-// 		console.log(`${phrase} ${this.name}`);
-// 	},
-// };
-
-// person2.greet('Hey there,');
-
-class Person implements Greet {
-	constructor(public name: string, public age: number) {}
-
-	greet() {
-		console.log('Hello There!');
-	}
-}
-
-// const kartik: Greet = new Person('Kartik', 20);
-// // or
-// const kartik2: Person = new Person('Kartik', 20);
-
-// console.log(kartik);
-// kartik.name = 'sad';
-
-interface Named {
-	readonly name: string;
-}
-interface Greetable {
-	greet(): void;
-}
-
-class Person2 implements Named, Greetable {
-	constructor(public name: string) {}
-	greet() {
-		console.log('hello');
-	}
-}
-
-// OR
-
-interface Greetable2 extends Named {
-	// extends named interface as well
-	greet(): void;
-}
-class Person3 implements Greetable2 {
-	constructor(public name: string) {}
-	greet() {
-		console.log('hello');
-	}
-}
-
-interface Greetable3 extends Named, Greetable {
-	sayHi(): void;
-}
-
-interface addFn {
-	(a: number, b: number): number;
-}
-
-// alternative to
-// type addFn2 = (a: number, b: number) => number;
-
-let someFunction: addFn;
-
-someFunction = (n1: number, n2: number) => {
-	return n1 + n2;
+// interface Admin {
+type Admin = {
+	name: string;
+	privileges: string[];
 };
 
-// optional properties and methods in interface
+// interface Employee {
+type Employee = {
+	name: string;
+	startDate: Date;
+};
 
-interface Named2 {
-	readonly name: string;
+// interface ElevatedEmployee extends Employee, Admin {}
+type ElevatedEmployee = Employee & Admin; // intersection type
 
-	outputName?: string;
-	sayName?(): void;
+let emp1: ElevatedEmployee;
+emp1 = {
+	name: 'kartik',
+	privileges: ['Admin'],
+	startDate: new Date(),
+};
+// console.log(emp1);
+
+// Type Guards
+
+function addStuff(a: number | string, b: number | string): number | string {
+	// Type Guard
+	if (typeof a === 'number' && typeof b === 'number') {
+		return a + b;
+	}
+	return `${a.toString()} & ${b.toString()}`;
 }
 
-// optional properties and methods in class
+// console.log(addStuff('Max', 'Mary'));
 
-class SomeClass {
-	name?: string;
+type UnknownEmployee = Admin | Employee; // union type
 
-	constructor(n?: string) {
-		if (n) this.name = n;
+function printEmployeeInformation(emp: UnknownEmployee) {
+	console.log(`Name: ${emp.name}`);
+	if ('privileges' in emp) console.log(`Privileges: ${emp.privileges}`);
+	if ('startDate' in emp) console.log(`Start Date: ${emp.startDate}`);
+}
+
+// printEmployeeInformation(emp1);
+// printEmployeeInformation({ name: 'kartik', startDate: new Date() });
+
+// for classes
+class Car {
+	drive() {
+		console.log('Driving a Car');
 	}
 }
+
+class Truck {
+	drive() {
+		console.log('Driving a Truck');
+	}
+	loadCargo(amount: number) {
+		console.log(`Loading cargo of weight: ${amount} Kg`);
+	}
+}
+
+let v1 = new Car();
+let v2 = new Truck();
+
+type Vehicle = Car | Truck;
+
+function useVehicle(vehicle: Vehicle) {
+	vehicle.drive();
+	if (vehicle instanceof Truck) vehicle.loadCargo(500);
+}
+
+// useVehicle(v1);
+// useVehicle(v2);
+
+// Discriminated Unions
+
+// Since instanceof can't be used for interfaces, we use a workaround what we call discriminated unions, where we describe a common property like type or kind,
+interface Bird {
+	type: 'Bird';
+	flyingSpeed: number;
+}
+interface Horse {
+	type: 'Horse';
+	runningSpeed: number;
+}
+
+type Animal = Bird | Horse;
+
+function moveAnimal(animal: Animal) {
+	let speed: number;
+	switch (animal.type) {
+		case 'Horse':
+			speed = animal.runningSpeed;
+			break;
+		case 'Bird':
+			speed = animal.flyingSpeed;
+	}
+	console.log(`Speed: ${speed}`);
+}
+
+// moveAnimal({ type: 'Horse', runningSpeed: 30 });
+
+// TypeCasting
+
+// const input = <HTMLInputElement>document.getElementById('input');  // OR
+const input = document.getElementById('input') as HTMLInputElement;
+
+input.value = 'lorem ipsum';
+
+// applies ! automatically too, this will give an error during runtime if the input element is not there in html
+// if we don't want this behavior we must use below one
+
+const sameInput = document.getElementById('input');
+if (sameInput) {
+	(sameInput as HTMLInputElement).value = 'lorem2';
+}
+
+// Index Properties
+// used when property names are not known in the first place
+
+interface ErrorContainer {
+	[prop: string]: string;
+	id: string;
+}
+
+let error1: ErrorContainer = {
+	id: 'e1',
+	email: 'invalid email',
+};
+
+let error2: ErrorContainer = {
+	id: 'e1',
+	password: 'too short',
+	userName: 'already taken',
+};
+
+// Function Overloads
+
+function addMe(a: string, b: string): string;
+function addMe(a: number, b: number): number;
+function addMe(a: string, b: number): number;
+function addMe(a: number, b: string): number;
+function addMe(a: string | number, b: string | number): string | number {
+	if (typeof a === 'number' && typeof b === 'number') return a + b;
+	return `${a.toString()} & ${b.toString()}`;
+}
+
+const result = addMe('1', 4);
+// console.log(result);
+
+// Optional Chaining - during api fetch
+
+let userData = {
+	id: 'u1',
+	name: 'Max',
+	job: { title: 'developer', description: 'MERN Stack Developer' },
+};
+
+// console.log(userData.job && userData.job.title); // conventional way
+// console.log(userData.job?.title); // cleaner way
+
+// Nullish Coalescing
+
+const inputData = null;
+
+const storedData = inputData || 'DEFAULT'; // if null, undefined, '' or any falsy value, it fallbacks to default
+const storedData2 = inputData ?? 'DEFAULT'; // if null or undefined fallbacks to default.
+
+// console.log(storedData, storedData2);
