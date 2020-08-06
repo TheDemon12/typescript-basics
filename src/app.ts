@@ -1,170 +1,102 @@
-// interface Admin {
-type Admin = {
-	name: string;
-	privileges: string[];
-};
+// Generic Types
 
-// interface Employee {
-type Employee = {
-	name: string;
-	startDate: Date;
-};
+let names: string[] = ['Max', 'Mary'];
+let names2: Array<string> = ['Max', 'Mary']; // alternate approach, Array<any> etc
 
-// interface ElevatedEmployee extends Employee, Admin {}
-type ElevatedEmployee = Employee & Admin; // intersection type
+let promise: Promise<string> = new Promise(resolve => {
+	setTimeout(() => resolve('Hi!'), 2000);
+});
+// promise.then(res => console.log(res, res.length)); // better understanding to typescript of the result of the promise
 
-let emp1: ElevatedEmployee;
-emp1 = {
-	name: 'kartik',
-	privileges: ['Admin'],
-	startDate: new Date(),
-};
-// console.log(emp1);
+// Creating a Generic Type Function
 
-// Type Guards
+function merge<T extends object, U extends object>(obj1: T, obj2: U) {
+	return Object.assign(obj1, obj2);
+}
 
-function addStuff(a: number | string, b: number | string): number | string {
-	// Type Guard
-	if (typeof a === 'number' && typeof b === 'number') {
-		return a + b;
+const finalObject = merge({ name: 'kartik' }, { age: 20 });
+// console.log(finalObject, finalObject.age, finalObject.name);
+
+interface BasicLength {
+	length: number;
+}
+
+function countAndDescribe<T extends BasicLength>(e: T): [T, string] {
+	let description = 'Got Invalid Value';
+
+	description = `Got ${e.length} element${e.length === 1 ? '' : 's'}`;
+
+	//tuple
+	return [e, description];
+}
+// console.log(countAndDescribe('342'));
+
+function extractAndConvert<T extends object, U extends keyof T>(
+	obj: T,
+	key: U
+) {
+	return obj[key];
+}
+
+// console.log(extractAndConvert({ name: 'kartik', age: 21 }, 'name'));
+
+// Generic Classes
+
+class DataStorage<T extends number | string | boolean> {
+	private data: T[] = [];
+
+	addItem(item: T) {
+		this.data.push(item);
 	}
-	return `${a.toString()} & ${b.toString()}`;
-}
 
-// console.log(addStuff('Max', 'Mary'));
+	deleteItem(item: T) {
+		this.data.splice(this.data.indexOf(item), 1);
+		// console.log(this.data);
+	}
 
-type UnknownEmployee = Admin | Employee; // union type
-
-function printEmployeeInformation(emp: UnknownEmployee) {
-	console.log(`Name: ${emp.name}`);
-	if ('privileges' in emp) console.log(`Privileges: ${emp.privileges}`);
-	if ('startDate' in emp) console.log(`Start Date: ${emp.startDate}`);
-}
-
-// printEmployeeInformation(emp1);
-// printEmployeeInformation({ name: 'kartik', startDate: new Date() });
-
-// for classes
-class Car {
-	drive() {
-		console.log('Driving a Car');
+	getItems() {
+		return this.data;
 	}
 }
 
-class Truck {
-	drive() {
-		console.log('Driving a Truck');
-	}
-	loadCargo(amount: number) {
-		console.log(`Loading cargo of weight: ${amount} Kg`);
-	}
+const store = new DataStorage<number>();
+
+store.addItem(2);
+store.addItem(4);
+store.addItem(5);
+
+store.deleteItem(2);
+
+// console.log(store.getItems());
+
+// Partial Generic Type
+
+interface CourseGoal {
+	title: string;
+	description: string;
+	completeUntil: Date;
 }
 
-let v1 = new Car();
-let v2 = new Truck();
+function createCourseGoal(
+	title: string,
+	description: string,
+	completeUntil: Date
+): CourseGoal {
+	// return {
+	// 	title,
+	// 	description,
+	// 	completeUntil,
+	// };
 
-type Vehicle = Car | Truck;
+	let courseGoal: Partial<CourseGoal> = {};
 
-function useVehicle(vehicle: Vehicle) {
-	vehicle.drive();
-	if (vehicle instanceof Truck) vehicle.loadCargo(500);
+	courseGoal.title = title;
+	courseGoal.description = description;
+	courseGoal.completeUntil = completeUntil;
+
+	return courseGoal as CourseGoal;
 }
 
-// useVehicle(v1);
-// useVehicle(v2);
+// Readonly Type
 
-// Discriminated Unions
-
-// Since instanceof can't be used for interfaces, we use a workaround what we call discriminated unions, where we describe a common property like type or kind,
-interface Bird {
-	type: 'Bird';
-	flyingSpeed: number;
-}
-interface Horse {
-	type: 'Horse';
-	runningSpeed: number;
-}
-
-type Animal = Bird | Horse;
-
-function moveAnimal(animal: Animal) {
-	let speed: number;
-	switch (animal.type) {
-		case 'Horse':
-			speed = animal.runningSpeed;
-			break;
-		case 'Bird':
-			speed = animal.flyingSpeed;
-	}
-	console.log(`Speed: ${speed}`);
-}
-
-// moveAnimal({ type: 'Horse', runningSpeed: 30 });
-
-// TypeCasting
-
-// const input = <HTMLInputElement>document.getElementById('input');  // OR
-const input = document.getElementById('input') as HTMLInputElement;
-
-input.value = 'lorem ipsum';
-
-// applies ! automatically too, this will give an error during runtime if the input element is not there in html
-// if we don't want this behavior we must use below one
-
-const sameInput = document.getElementById('input');
-if (sameInput) {
-	(sameInput as HTMLInputElement).value = 'lorem2';
-}
-
-// Index Properties
-// used when property names are not known in the first place
-
-interface ErrorContainer {
-	[prop: string]: string;
-	id: string;
-}
-
-let error1: ErrorContainer = {
-	id: 'e1',
-	email: 'invalid email',
-};
-
-let error2: ErrorContainer = {
-	id: 'e1',
-	password: 'too short',
-	userName: 'already taken',
-};
-
-// Function Overloads
-
-function addMe(a: string, b: string): string;
-function addMe(a: number, b: number): number;
-function addMe(a: string, b: number): number;
-function addMe(a: number, b: string): number;
-function addMe(a: string | number, b: string | number): string | number {
-	if (typeof a === 'number' && typeof b === 'number') return a + b;
-	return `${a.toString()} & ${b.toString()}`;
-}
-
-const result = addMe('1', 4);
-// console.log(result);
-
-// Optional Chaining - during api fetch
-
-let userData = {
-	id: 'u1',
-	name: 'Max',
-	job: { title: 'developer', description: 'MERN Stack Developer' },
-};
-
-// console.log(userData.job && userData.job.title); // conventional way
-// console.log(userData.job?.title); // cleaner way
-
-// Nullish Coalescing
-
-const inputData = null;
-
-const storedData = inputData || 'DEFAULT'; // if null, undefined, '' or any falsy value, it fallbacks to default
-const storedData2 = inputData ?? 'DEFAULT'; // if null or undefined fallbacks to default.
-
-// console.log(storedData, storedData2);
+let cars: Readonly<string[]> = ['Honda', 'BMW'];
